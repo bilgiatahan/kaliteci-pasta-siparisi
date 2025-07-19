@@ -3,6 +3,9 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Son sipariş zamanlarını saklamak için Map
+const lastOrderTimes = new Map<string, number>();
+
 export async function POST(request: NextRequest) {
   try {
     const formDataFromRequest = await request.formData();
@@ -18,6 +21,38 @@ export async function POST(request: NextRequest) {
         formData[key] = value;
       }
     });
+
+    // Telefon numarası kontrolü - 6 saat içinde sipariş kontrolü
+    const telefon = formData.telefon;
+    const currentTime = Date.now();
+    const sixHours = 6 * 60 * 60 * 1000; // 6 saat milisaniye cinsinden
+
+    if (lastOrderTimes.has(telefon)) {
+      const lastOrderTime = lastOrderTimes.get(telefon)!;
+      const timeDifference = currentTime - lastOrderTime;
+
+      if (timeDifference < sixHours) {
+        const remainingTime = sixHours - timeDifference;
+        const remainingHours = Math.ceil(remainingTime / (60 * 60 * 1000));
+        const remainingMinutes = Math.ceil(
+          (remainingTime % (60 * 60 * 1000)) / (60 * 1000)
+        );
+
+        return NextResponse.json(
+          {
+            error: "Bu telefon numarası ile çok yakın zamanda sipariş verilmiş",
+            warning: `Yeni sipariş verebilmek için ${
+              remainingHours > 0 ? remainingHours + " saat " : ""
+            }${remainingMinutes} dakika beklemeniz gerekmektedir.`,
+            remainingTimeMs: remainingTime,
+          },
+          { status: 429 } // Too Many Requests
+        );
+      }
+    }
+
+    // Sipariş zamanını kaydet
+    lastOrderTimes.set(telefon, currentTime);
 
     // Mail içeriğini hazırla
     const mailContent = `
@@ -119,7 +154,8 @@ export async function POST(request: NextRequest) {
       html: mailContent,
     };
 
-    // Referans görseli varsa attachment olarak ekle
+    console.log(lastOrderTimes);
+
     if (formData.referansGorsel) {
       const file = formData.referansGorsel as File;
       const bytes = await file.arrayBuffer();
@@ -133,7 +169,6 @@ export async function POST(request: NextRequest) {
       ];
     }
 
-    // Mail gönder
     const businessResponse = await resend.emails.send(businessEmail);
 
     if (businessResponse.error) {
