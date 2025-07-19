@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: #3333;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: var(--foreground-rgb);
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* React DatePicker Stilleri */
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker__input-container input {
+  width: 100%;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.5rem !important;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.react-datepicker__input-container input:focus {
+  outline: none !important;
+  border-color: transparent !important;
+  box-shadow: 0 0 0 2px #ec4899 !important;
+}
+
+.react-datepicker {
+  border: none !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.react-datepicker__header {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+  border-bottom: none !important;
+  color: white !important;
+}
+
+.react-datepicker__current-month {
+  color: white !important;
+  font-weight: 600;
+}
+
+.react-datepicker__day-name {
+  color: white !important;
+}
+
+.react-datepicker__day--selected {
+  background-color: #ec4899 !important;
+  color: white !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: #fce7f3 !important;
+}
+
+.react-datepicker__time-container
+  .react-datepicker__time
+  .react-datepicker__time-box
+  ul.react-datepicker__time-list
+  li.react-datepicker__time-list-item--selected {
+  background-color: #ec4899 !important;
+}
+
+/* Telefon Input Stilleri */
+.phone-input-wrapper {
+  position: relative;
+}
+
+.phone-prefix {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 600;
+  color: #6b7280;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.phone-input {
+  padding-left: 4.5rem !important;
+}
+
+/* Pasta Şekli Background'ları */
+.shape-heart {
+  background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%) !important;
+}
+
+.shape-heart:checked {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  color: white !important;
+  border-color: #dc2626 !important;
+}
+
+.shape-circle {
+  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%) !important;
+}
+
+.shape-circle:checked {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important;
+  color: white !important;
+  border-color: #ea580c !important;
+}
+
+.shape-star {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde047 100%) !important;
+}
+
+.shape-star:checked {
+  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;
+  color: white !important;
+  border-color: #eab308 !important;
+}
+
+.shape-custom {
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%) !important;
+}
+
+.shape-custom:checked {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
+  color: white !important;
+  border-color: #6b7280 !important;
+}
+
+/* Submit Button Özel Animasyonu */
+.submit-button {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 50%, #be185d 100%);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 8px 25px rgba(236, 72, 153, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.submit-button:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(236, 72, 153, 0.4);
+}
+
+.submit-button:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.submit-button:disabled {
+  transform: none !important;
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%) !important;
+  box-shadow: 0 4px 15px rgba(156, 163, 175, 0.2) !important;
+  cursor: not-allowed;
+}
+
+.submit-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.submit-button:hover::before {
+  left: 100%;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
