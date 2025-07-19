@@ -30,6 +30,8 @@ export default function Home() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const icerikSecenekleri = [
     "Çikolata",
@@ -43,6 +45,31 @@ export default function Home() {
     "Kestane",
     "Vişne",
   ];
+
+  // Validasyon fonksiyonları
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone: string) => {
+    // Türkiye telefon numarası formatı (5XX XXX XX XX)
+    const cleanPhone = phone.replace("+90", "").replace(/\s/g, "");
+    const phoneRegex = /^5[0-9]{9}$/;
+    return phoneRegex.test(cleanPhone);
+  };
+
+  const showMessage = (message: string, success: boolean) => {
+    setSubmitMessage(message);
+    setIsSuccess(success);
+    setShowPopup(true);
+
+    // 5 saniye sonra popup'ı kapat
+    setTimeout(() => {
+      setShowPopup(false);
+      setSubmitMessage("");
+    }, 5000);
+  };
 
   const handleIcerikChange = (icerik: string) => {
     const currentIcerikler = [...formData.icerikler];
@@ -61,6 +88,22 @@ export default function Home() {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitMessage("");
+
+    // Validasyon kontrolü
+    if (!validateEmail(formData.email)) {
+      showMessage("❌ Lütfen geçerli bir e-posta adresi girin!", false);
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!validatePhone(formData.telefon)) {
+      showMessage(
+        "❌ Lütfen geçerli bir telefon numarası girin! (5XX XXX XX XX formatında)",
+        false
+      );
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       // FormData kullanarak dosya ile birlikte gönder
@@ -85,8 +128,9 @@ export default function Home() {
       });
 
       if (response.ok) {
-        setSubmitMessage(
-          "✅ Siparişiniz başarıyla alındı! En kısa sürede sizinle iletişime geçeceğiz."
+        showMessage(
+          "✅ Siparişiniz başarıyla alındı! En kısa sürede sizinle iletişime geçeceğiz.",
+          true
         );
         // Form sıfırlama
         setFormData({
@@ -108,12 +152,13 @@ export default function Home() {
           referansGorsel: null,
         });
       } else {
-        setSubmitMessage(
-          "❌ Sipariş gönderilirken bir hata oluştu. Lütfen tekrar deneyin."
+        showMessage(
+          "❌ Sipariş gönderilirken bir hata oluştu. Lütfen tekrar deneyin.",
+          false
         );
       }
     } catch (error) {
-      setSubmitMessage("❌ Bağlantı hatası. Lütfen tekrar deneyin.");
+      showMessage("❌ Bağlantı hatası. Lütfen tekrar deneyin.", false);
     } finally {
       setIsSubmitting(false);
     }
@@ -177,14 +222,31 @@ export default function Home() {
                           setFormData({ ...formData, telefon: "+90" + value });
                         }
                       }}
+                      onBlur={(e) => {
+                        if (
+                          !validatePhone(formData.telefon) &&
+                          formData.telefon.length > 3
+                        ) {
+                          e.target.style.borderColor = "#ef4444";
+                        } else {
+                          e.target.style.borderColor = "#d1d5db";
+                        }
+                      }}
                       className="phone-input w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200"
                       placeholder="532 123 45 67"
                       maxLength={10}
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1 flex items-center">
-                    ✅ Sadece rakam girin, format otomatik düzenlenecek
+                    ✅ 5XX XXX XX XX formatında 10 haneli numara girin
                   </p>
+                  {formData.telefon.length > 3 &&
+                    !validatePhone(formData.telefon) && (
+                      <p className="text-xs text-red-500 mt-1 flex items-center">
+                        ❌ Geçersiz telefon numarası (5 ile başlamalı ve 10 hane
+                        olmalı)
+                      </p>
+                    )}
                 </div>
 
                 <div className="md:col-span-2">
@@ -198,9 +260,26 @@ export default function Home() {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
+                    onBlur={(e) => {
+                      if (
+                        !validateEmail(formData.email) &&
+                        formData.email.length > 0
+                      ) {
+                        e.target.style.borderColor = "#ef4444";
+                      } else {
+                        e.target.style.borderColor = "#d1d5db";
+                      }
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="ornek@email.com"
                   />
+                  {formData.email.length > 0 &&
+                    !validateEmail(formData.email) && (
+                      <p className="text-xs text-red-500 mt-1 flex items-center">
+                        ❌ Geçerli bir e-posta adresi girin (örn:
+                        ornek@email.com)
+                      </p>
+                    )}
                 </div>
               </div>
               <hr />
@@ -459,7 +538,9 @@ export default function Home() {
                           : "",
                       });
                     }}
-                    minDate={new Date()}
+                    minDate={
+                      new Date(new Date().setDate(new Date().getDate() + 1))
+                    }
                     dateFormat="dd/MM/yyyy"
                     locale="tr"
                     placeholderText="Tarih seçin"
@@ -588,20 +669,50 @@ export default function Home() {
                 </button>
               </div>
             </form>
-            {submitMessage && (
-              <div
-                className={`mt-6 p-4 rounded-lg text-center ${
-                  submitMessage.includes("✅")
-                    ? "bg-green-100 text-green-800 border border-green-300"
-                    : "bg-red-100 text-red-800 border border-red-300"
-                }`}
-              >
-                {submitMessage}
-              </div>
-            )}
           </div>
         </div>
       </main>
+
+      {/* Popup Mesaj */}
+      {showPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+          <div
+            className={`relative max-w-md w-full p-6 rounded-2xl shadow-2xl popup-enter ${
+              isSuccess
+                ? "bg-green-50 border-2 border-green-200"
+                : "bg-red-50 border-2 border-red-200"
+            }`}
+          >
+            <button
+              onClick={() => setShowPopup(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+            >
+              ×
+            </button>
+            <div className="text-center">
+              <div
+                className={`text-6xl mb-4 ${
+                  isSuccess ? "text-green-500" : "text-red-500"
+                }`}
+              >
+                {isSuccess ? "✅" : "❌"}
+              </div>
+              <p
+                className={`text-lg font-medium ${
+                  isSuccess ? "text-green-800" : "text-red-800"
+                }`}
+              >
+                {submitMessage}
+              </p>
+              {isSuccess && (
+                <p className="text-sm text-green-600 mt-2">
+                  Bu mesaj 5 saniye sonra otomatik kapanacak
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
